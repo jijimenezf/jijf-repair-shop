@@ -10,7 +10,7 @@ export default function Home() {
             555 Lane Gateway <br />
             Kansas City
           </address>
-          <p>Opan Daily: 9am to 5 pm</p>
+          <p>Open Daily: 9am to 5 pm</p>
           <Link
            href="tel: 800 9000 2000"
            className="hover:underline"
