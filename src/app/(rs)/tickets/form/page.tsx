@@ -1,14 +1,29 @@
 import { getCustomer } from "@/lib/queries/getCustomer";
 import { getTicket } from "@/lib/queries/getTicket";
 import { BackButton } from "@/components/BackButton";
+import TicketForm from "@/app/(rs)/tickets/form/TicketForm";
+
+import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { Users, init as kindeInit } from "@kinde/management-api-js";
 
 // This is a new feature in NextJs 15
 type SearchType = { [key: string]: string | undefined };
 
+export async function generateMetada({
+  searchParams,
+}: {
+  searchParams: Promise<SearchType>;
+}) {
+  const { customerId, ticketId } = await searchParams;
+  if (!customerId && !ticketId) return { title: "Missing TicketId or CustomerId" }
+  if (customerId) return { title: `New Ticket for Customer #${customerId}` }
+  return { title: `Edit Ticket #${ticketId}` }
+};
+
 export default async function TicketformPage({
   searchParams,
 }: {
-  searchParams: SearchType;
+  searchParams: Promise<SearchType>;
 }) {
   try {
     const { customerId, ticketId } = await searchParams;
@@ -23,7 +38,11 @@ export default async function TicketformPage({
         </>
       );
     }
-    // Not sure about this
+
+    const { getPermission, getUser } = getKindeServerSession();
+    const [managerPermission, user] = await Promise.all([getPermission('manager'), getUser()]);
+    const isManager = managerPermission?.isGranted;
+    
     if (customerId) {
       const customerData = await getCustomer(parseInt(customerId));
       if (!customerData) {
@@ -47,6 +66,15 @@ export default async function TicketformPage({
           </>
         );
       }
+
+      if (isManager) { /** Only manager can assign a ticket to one tech */
+        kindeInit();
+        const { users } = await Users.getUsers();
+        const optionsTech = users ? users.map(user => ({ id: user.email!, description: user.email! })) : [];
+        return <TicketForm customer={customerData} techs={optionsTech} />
+      } else {
+        return <TicketForm customer={customerData} />
+      }
     }
 
     if (ticketId) {
@@ -60,9 +88,17 @@ export default async function TicketformPage({
         );
       }
       const customerData = await getCustomer(ticketData.customerId);
-      // return ticket form
-      console.log({ ticketData });
-      console.log({ customerData });
+      if (customerData) {
+        if (isManager) {
+          kindeInit();
+          const { users } = await Users.getUsers();
+          const optionsTech = users ? users.map(user => ({ id: user.email!, description: user.email! })) : [];
+          return <TicketForm ticket={ticketData} customer={customerData} techs={optionsTech} />
+        } else {
+          const isEditable = user.email?.toLowerCase() === ticketData.tech.toLowerCase();
+          return <TicketForm customer={customerData} ticket={ticketData} isEditable={isEditable} />
+        }
+      }
     }
   } catch (err) {
     if (err instanceof Error) {

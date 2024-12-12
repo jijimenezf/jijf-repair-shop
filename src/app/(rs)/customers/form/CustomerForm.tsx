@@ -13,12 +13,18 @@ import { CustomInput } from "@/components/CustomInput";
 import { CustomSelect } from "@/components/CustomSelect";
 import { CustomTextArea } from "@/components/CustomTextArea";
 import { StatesArray } from "@/lib/constants";
+import { CustomCheckbox } from "@/components/CustomCheckbox";
+
+import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 
 type CustomerFormProps = {
   customer?: selectCustomerType;
 };
 
 export default function CustomerForm({ customer }: CustomerFormProps) {
+  const { isLoading, getPermission } = useKindeBrowserClient();
+  const isManager = !isLoading && getPermission('manager')?.isGranted;
+
   const defaultValues: insertCustomerType = {
     id: customer?.id ?? 0,
     firstName: customer?.firstName ?? "",
@@ -31,6 +37,7 @@ export default function CustomerForm({ customer }: CustomerFormProps) {
     phone: customer?.phone ?? "",
     email: customer?.email ?? "",
     notes: customer?.notes ?? "",
+    active: customer?.active ?? true,
   };
 
   const form = useForm<insertCustomerType>({
@@ -47,7 +54,7 @@ export default function CustomerForm({ customer }: CustomerFormProps) {
     <div className="flex flex-col gap-1 sm:px-8">
       <div>
         <h2 className="text-2xl font-bold">
-          {customer?.id ? "Edit" : "New"} Customer Form
+          {customer?.id ? "Edit" : "New"} Customer {customer?.id ? `#${customer.id}` : "Form"}
         </h2>
       </div>
       <Form {...form}>
@@ -69,6 +76,9 @@ export default function CustomerForm({ customer }: CustomerFormProps) {
             <CustomInput<insertCustomerType> fieldTitle="Email" nameInSchema="email" />
             <CustomInput<insertCustomerType> fieldTitle="Phone" nameInSchema="phone" />
             <CustomTextArea<insertCustomerType> fieldTitle="Notes" nameInSchema="notes" className="h-40" />
+            {isLoading ? <span>Loading...</span> : isManager && customer?.id ? (
+              <CustomCheckbox<insertCustomerType> fieldTitle="Active" nameInSchema="active" message="Yes" />
+            ) : null}
             <div className="flex gap-2">
               <Button
                 type="submit"

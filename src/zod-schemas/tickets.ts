@@ -4,10 +4,16 @@ import { z } from "zod";
 
 export const insertTicketSchema = createInsertSchema(tickets, {
     id: z.union([z.number(), z.literal("(New)")]),
-    title: (schema) => schema.title.min(1, "Title is required"),
-    description: (schema) => schema.description.min(1, "Description is required"),
-    tech: (schema) => schema.tech.email("Invalid email address"),
+    title: (schema) => schema.min(1, "Title is required"),
+    description: (schema) => schema.min(1, "Description is required"),
+    tech: (schema) => schema.email("Invalid email address"),
 });
+
+/*const userSelectSchema = createSelectSchema(tickets, {
+    name: (schema) => schema.max(20), // Extends schema
+    bio: (schema) => schema.max(1000), // Extends schema before becoming nullable/optional
+    preferences: z.object({ theme: z.string() }) // Overwrites the field, including its nullability
+  });*/
 
 export const selectTicketSchema = createSelectSchema(tickets);
 
