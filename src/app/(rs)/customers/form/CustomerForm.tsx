@@ -9,6 +9,10 @@ import {
   type insertCustomerType,
   type selectCustomerType,
 } from "@/zod-schemas/customer";
+import { CustomInput } from "@/components/CustomInput";
+import { CustomSelect } from "@/components/CustomSelect";
+import { CustomTextArea } from "@/components/CustomTextArea";
+import { StatesArray } from "@/lib/constants";
 
 type CustomerFormProps = {
   customer?: selectCustomerType;
@@ -49,9 +53,38 @@ export default function CustomerForm({ customer }: CustomerFormProps) {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(submitForm)}
-          className="flex flex-col sm:flex-row gap-4 sm:gap-8"
+          className="flex flex-col md:flex-row gap-4 md:gap-8"
         >
-          <p>{JSON.stringify(form.getValues())}</p>
+          <div className="flex flex-col gap-4 w-full max-w-xs">
+            <CustomInput<insertCustomerType> fieldTitle="First Name" nameInSchema="firstName" />
+            <CustomInput<insertCustomerType> fieldTitle="Last Name" nameInSchema="lastName" />
+            <CustomInput<insertCustomerType> fieldTitle="Address 1" nameInSchema="address1" />
+            <CustomInput<insertCustomerType> fieldTitle="Address 2" nameInSchema="address2" />
+            <CustomInput<insertCustomerType> fieldTitle="City" nameInSchema="city" />
+            <CustomSelect<insertCustomerType> fieldTitle="State" nameInSchema="state" options={StatesArray} />
+          </div>
+
+          <div className="flex flex-col gap-4 w-full max-w-xs">
+            <CustomInput<insertCustomerType> fieldTitle="Zip Code" nameInSchema="zip" />
+            <CustomInput<insertCustomerType> fieldTitle="Email" nameInSchema="email" />
+            <CustomInput<insertCustomerType> fieldTitle="Phone" nameInSchema="phone" />
+            <CustomTextArea<insertCustomerType> fieldTitle="Notes" nameInSchema="notes" className="h-40" />
+            <div className="flex gap-2">
+              <Button
+                type="submit"
+                className="w-3/4"
+                variant="default"
+                title="Save"
+              >Save</Button>
+
+              <Button
+                type="button"
+                variant="destructive"
+                title="Reset"
+                onClick={() => form.reset(defaultValues)}
+              >Reset</Button>
+            </div>
+          </div>
         </form>
       </Form>
     </div>
