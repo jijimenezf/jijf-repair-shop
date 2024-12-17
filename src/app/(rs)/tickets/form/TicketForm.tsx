@@ -14,6 +14,11 @@ import { CustomInput } from "@/components/CustomInput";
 import { CustomSelect } from "@/components/CustomSelect";
 import { CustomTextArea } from "@/components/CustomTextArea";
 import { CustomCheckbox } from "@/components/CustomCheckbox";
+import { useAction } from 'next-safe-action/hooks';
+import { useToast } from "@/hooks/use-toast";
+import { saveTicket } from "@/app/actions/saveTicket";
+import { LoaderCircle } from "lucide-react";
+// import { DisplayActionResponse } from "@/components/DisplayServerActionResponse"
 
 type TicketFormProps = {
   customer: selectCustomerType;
@@ -24,6 +29,7 @@ type TicketFormProps = {
 
 export default function TicketForm({ customer, ticket, techs = [], isEditable = true }: TicketFormProps) {
   const isManager = Array.isArray(techs) && techs.length > 0;
+  const { toast } = useToast();
 
   const defaultValues: insertTicketType = {
     id: ticket?.id ?? "(New)",
@@ -40,14 +46,32 @@ export default function TicketForm({ customer, ticket, techs = [], isEditable = 
     defaultValues,
   });
 
-  /**const form = useForm<insertCustomerType>({
-      mode: "onBlur",
-      resolver: zodResolver(insertCustomerSchema),
-      defaultValues,
-    }); */
+  const { 
+    execute: executeSave, 
+    //result: saveResult, 
+    isPending: isSaving, 
+    reset: resetSave,
+  } = useAction(saveTicket, {
+    onSuccess({ data }) {
+      if (data?.message) {
+        toast({
+          variant: 'default',
+          title: 'Success! 🎉',
+          description: data.message,
+        });
+      }
+    },
+    onError({ error }) {
+      toast({
+        variant: 'destructive',
+        title: 'Error 🚨',
+        description: 'There is an error in the workflow',
+      });
+    }
+  });
 
   async function submitForm(data: insertTicketType) {
-    console.log(data);
+    executeSave(data);
   }
 
   return (
@@ -128,15 +152,18 @@ export default function TicketForm({ customer, ticket, techs = [], isEditable = 
                   className="w-3/4"
                   variant="default"
                   title="Save"
-                >
-                  Save
+                >{isSaving ? 
+                  (<LoaderCircle className="animate-spin" >Saving</LoaderCircle>) : "Save"}
                 </Button>
 
                 <Button
                   type="button"
                   variant="destructive"
                   title="Reset"
-                  onClick={() => form.reset(defaultValues)}
+                  onClick={() => { 
+                    form.reset(defaultValues);
+                    resetSave();
+                  } }
                 >
                   Reset
                 </Button>

@@ -14,8 +14,12 @@ import { CustomSelect } from "@/components/CustomSelect";
 import { CustomTextArea } from "@/components/CustomTextArea";
 import { StatesArray } from "@/lib/constants";
 import { CustomCheckbox } from "@/components/CustomCheckbox";
-
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
+import { useAction } from 'next-safe-action/hooks';
+import { useToast } from "@/hooks/use-toast";
+import { saveCustomer } from "@/app/actions/saveCustomer";
+import { LoaderCircle } from "lucide-react";
+// import { DisplayActionResponse } from "@/components/DisplayServerActionResponse"
 
 type CustomerFormProps = {
   customer?: selectCustomerType;
@@ -24,6 +28,8 @@ type CustomerFormProps = {
 export default function CustomerForm({ customer }: CustomerFormProps) {
   const { isLoading, getPermission } = useKindeBrowserClient();
   const isManager = !isLoading && getPermission('manager')?.isGranted;
+
+  const { toast } = useToast();
 
   const defaultValues: insertCustomerType = {
     id: customer?.id ?? 0,
@@ -46,8 +52,32 @@ export default function CustomerForm({ customer }: CustomerFormProps) {
     defaultValues,
   });
 
+  const { 
+    execute: executeSave, 
+    //result: saveResult, 
+    isPending: isSaving, 
+    reset: resetSave,
+  } = useAction(saveCustomer, {
+    onSuccess({ data }) {
+      if (data?.message) {
+        toast({
+          variant: 'default',
+          title: 'Success! 🎉',
+          description: data.message,
+        });
+      }
+    },
+    onError({ error }) {
+      toast({
+        variant: 'destructive',
+        title: 'Error 🚨',
+        description: 'There is an error in the workflow',
+      });
+    }
+  });
+
   async function submitForm(data: insertCustomerType) {
-    console.log(data);
+    executeSave(data);
   }
 
   return (
@@ -85,13 +115,18 @@ export default function CustomerForm({ customer }: CustomerFormProps) {
                 className="w-3/4"
                 variant="default"
                 title="Save"
-              >Save</Button>
+              >{isSaving ? 
+                (<LoaderCircle className="animate-spin" >Saving</LoaderCircle>) : "Save"}
+              </Button>
 
               <Button
                 type="button"
                 variant="destructive"
                 title="Reset"
-                onClick={() => form.reset(defaultValues)}
+                onClick={() => { 
+                  form.reset(defaultValues);
+                  resetSave();
+                } }
               >Reset</Button>
             </div>
           </div>
