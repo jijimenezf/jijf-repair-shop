@@ -4,6 +4,7 @@ import { ilike, or, eq } from "drizzle-orm";
 
 export async function getOpenTickets() {
     const results = await db.select({
+        id: tickets.id,
         ticketDate: tickets.createdAt,
         title: tickets.title,
         firstName: customers.firstName,
@@ -20,6 +21,7 @@ export async function getOpenTickets() {
 export async function getTicketsBySearch(searchText: string) {
     const wildcard = `%${searchText}%`;
     const results = await db.select({
+        id: tickets.id,
         ticketDate: tickets.createdAt,
         title: tickets.title,
         firstName: customers.firstName,

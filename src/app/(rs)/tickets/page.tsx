@@ -3,6 +3,7 @@ import Form from "next/form";
 import { Input } from "@/components/ui/input";
 import CustomSearch from "@/components/CustomSearch";
 import { getOpenTickets, getTicketsBySearch } from "@/lib/queries/getTicketsBySearch";
+import TicketTable from "@/app/(rs)/tickets/TicketTable";
 //import { type selectTicketType } from "@/zod-schemas/tickets"
 
 export const metadata: Metadata = {
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
 
 type SearchType = { [key: string]: string | undefined };
 type ticketResultType = /*Pick<selectTicketType, "title" | "tech"> &*/ {
+  id: number,
   title: string,
   tech: string,
   ticketDate: Date,
@@ -40,7 +42,7 @@ export default async function Tickets({
         <Input name="searchText" type="text" placeholder="Search Tickets" className="w-full" />
         <CustomSearch />
       </Form>
-      <p>{JSON.stringify(results)}</p>
+      { results.length > 0 ? <TicketTable data={results} /> : <p className="mt-4">No results found</p>}
     </>
   );
 }
