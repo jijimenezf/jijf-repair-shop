@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { tickets, customers } from "@/db/schema";
-import { ilike, or, eq } from "drizzle-orm";
+import { ilike, or, eq, asc, sql } from "drizzle-orm";
 
 export async function getOpenTickets() {
     const results = await db.select({
@@ -11,9 +11,11 @@ export async function getOpenTickets() {
         lastName: customers.lastName,
         email: customers.email,
         tech: tickets.tech,
+        completed: tickets.completed,
     }).from(tickets)
     .leftJoin(customers, eq(tickets.customerId, customers.id))
-    .where(eq(tickets.completed, false));
+    .where(eq(tickets.completed, false))
+    .orderBy(asc(tickets.createdAt));
 
     return results;
 }
@@ -28,23 +30,21 @@ export async function getTicketsBySearch(searchText: string) {
         lastName: customers.lastName,
         email: customers.email,
         tech: tickets.tech,
+        completed: tickets.completed,
     })
       .from(tickets)
       .leftJoin(customers, eq(tickets.customerId, customers.id))
       .where(or(
         ilike(tickets.title, wildcard),
-        ilike(tickets.description, wildcard),
         ilike(tickets.tech, wildcard),
-        ilike(customers.firstName, wildcard),
-        ilike(customers.lastName, wildcard),
         ilike(customers.email, wildcard),
         ilike(customers.phone, wildcard),
-        ilike(customers.address1, wildcard),
-        ilike(customers.address2, wildcard),
         ilike(customers.city, wildcard),
-        ilike(customers.state, wildcard),
         ilike(customers.zip, wildcard),
-      ));
+        sql`lower(concat(${customers.firstName}, ' ', ${customers.lastName})) LIKE ${`%${searchText.toLowerCase().replace(' ', '%')}%`}`,
+      )).orderBy(asc(tickets.createdAt));
 
     return results;
 }
+
+export type TicketSearchType = Awaited<ReturnType<typeof getTicketsBySearch>>;
