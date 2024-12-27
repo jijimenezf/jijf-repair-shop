@@ -16,6 +16,8 @@ export default function Home() {
            className="hover:underline"
           >800 9000 2000</Link>
         </div>
+        <br />
+        <Link href="/login">Login page</Link>
       </main>
     </div>
   );
