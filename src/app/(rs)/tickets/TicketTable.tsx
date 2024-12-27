@@ -112,60 +112,134 @@ export default function TicketTable({ data }: TicketTableProps) {
     });
 
     return (
-        <div className="mt-6 flex flex-col gap-4">
-          <div className="rounded-lg overflow-hidden border border-border">
-            <Table className="border">
-                <TableHeader>
-                    {table.getHeaderGroups().map((headerGroup) => (
-                        <TableRow key={headerGroup.id}>
-                            {headerGroup.headers.map((header) => (
-                                <TableHead key={header.id} className="bg-secondary">
-                                    <div>
-                                        { header.isPlaceholder ? null : 
-                                        flexRender(
-                                            header.column.columnDef.header, 
-                                            header.getContext())}
-                                    </div>
-                                    {header.column.getCanFilter() ? (
-                                        <div className="grid place-content-center">
-                                            <CustomFilter column={header.column} />
-                                        </div>
-                                    ) : null}
-                                </TableHead>
-                            ))}
-                        </TableRow>
-                    ))}
-                </TableHeader>
-                <TableBody>
-                    {table.getRowModel().rows.map((row) => (
-                        <TableRow
-                          key={row.id}
-                          className="cursor-pointer hover:bg-border/25 dark:hover:bg-ring/40"
-                          onClick={() => router.push(`/tickets/form?ticketId=${row.original.id}`)}
-                        >
-                            {row.getVisibleCells().map((cell) => (
-                                <TableCell key={cell.id} className="border">
-                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                </TableCell>
-                            ))}
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-          </div>
-          <div className="flex justify-between items-center">
-            <div className="flex basis-1/3 items-center">
-              <p className="whitespace-nowrap font-bold">
-                {`Page ${table.getState().pagination.pageIndex + 1} of ${table.getPageCount()}`}
-              </p>
-            </div>
-            <div className="space-x-1">
-                <Button variant="outline" onClick={() => table.resetSorting()}>Reset Sorting</Button>
-                <Button variant="outline" onClick={() => table.resetColumnFilters()}>Reset Filters</Button>
-                <Button variant="outline" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>Previous</Button>
-                <Button variant="outline" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>Next</Button>
-            </div>
-          </div>
+      <div className="mt-6 flex flex-col gap-4">
+        <div className="rounded-lg overflow-hidden border border-border">
+          <Table className="border">
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id} className="bg-secondary">
+                      <div>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </div>
+                      {header.column.getCanFilter() ? (
+                        <div className="grid place-content-center">
+                          <CustomFilter column={header.column} />
+                        </div>
+                      ) : null}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  className="cursor-pointer hover:bg-border/25 dark:hover:bg-ring/40"
+                  onClick={() =>
+                    router.push(`/tickets/form?ticketId=${row.original.id}`)
+                  }
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id} className="border">
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
+        <Pagination
+          resetSorting={table.resetSorting}
+          resetColumnFilters={table.resetColumnFilters}
+          previousPage={table.previousPage}
+          nextPage={table.nextPage}
+          setPageIndex={table.setPageIndex}
+          isDisabledPrevious={!table.getCanPreviousPage()}
+          isDisabledNext={!table.getCanNextPage()}
+          totalPages={table.getPageCount()}
+          currentPage={table.getState().pagination.pageIndex + 1}
+        />
+      </div>
     );
+}
+/** Internal component. It can be relocated for reusability. Currently is only used for tickets */
+type PaginationProps = {
+    resetSorting: () => void,
+    resetColumnFilters: () => void,
+    previousPage: () => void,
+    nextPage: () => void,
+    setPageIndex: (pageIndex: number) => void,
+    isDisabledPrevious: boolean,
+    isDisabledNext: boolean,
+    totalPages: number,
+    currentPage: number,
+}
+function Pagination({
+  resetSorting,
+  resetColumnFilters,
+  previousPage,
+  nextPage,
+  setPageIndex,
+  isDisabledPrevious = true,
+  isDisabledNext = true,
+  totalPages,
+  currentPage = 1,
+}: PaginationProps) {
+  return (
+    <div className="flex justify-between items-center">
+      <div className="flex basis-1/3 items-center">
+        <p className="whitespace-nowrap font-bold">
+          {`Page ${currentPage} of ${totalPages}`}
+        </p>
+      </div>
+      <div className="space-x-1">
+        <Button variant="outline" onClick={() => resetSorting()}>
+          Reset Sorting
+        </Button>
+        <Button variant="outline" onClick={() => resetColumnFilters()}>
+          Reset Filters
+        </Button>
+        <Button
+          className="border rounded p-1"
+          onClick={() => setPageIndex(0)}
+          disabled={isDisabledPrevious}
+        >
+          {"<<"}
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => previousPage()}
+          disabled={isDisabledPrevious}
+        >
+          {"<"}
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => nextPage()}
+          disabled={isDisabledNext}
+        >
+          {">"}
+        </Button>
+        <Button
+          className="border rounded p-1"
+          onClick={() => setPageIndex(totalPages - 1)}
+          disabled={isDisabledNext}
+        >
+          {">>"}
+        </Button>
+      </div>
+    </div>
+  );
 }
