@@ -20,9 +20,13 @@ export default async function Customers({
 
   const { searchText } = await searchParams;
   let results: selectCustomerType[] = [];
+  let message = "";
   
   if (searchText) {
     results = await getCustomersBySearch(searchText);
+    if (!results || results.length === 0) {
+      message = "No results found";
+    }
   }
   
   return (
@@ -31,7 +35,7 @@ export default async function Customers({
         <Input name="searchText" type="text" placeholder="Search Customers" className="w-full" />
         <CustomSearch />
       </Form>
-      { results.length > 0 ? <CustomerTable data={results} /> : <p className="mt-4">No results found</p>}
+      { results.length > 0 ? <CustomerTable data={results} /> : <p className="mt-4">{message}</p>}
     </>
   );
 }

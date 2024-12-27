@@ -4,22 +4,13 @@ import { Input } from "@/components/ui/input";
 import CustomSearch from "@/components/CustomSearch";
 import { getOpenTickets, getTicketsBySearch } from "@/lib/queries/getTicketsBySearch";
 import TicketTable from "@/app/(rs)/tickets/TicketTable";
-//import { type selectTicketType } from "@/zod-schemas/tickets"
+import type { TicketSearchType } from "@/lib/queries/getTicketsBySearch";
 
 export const metadata: Metadata = {
   title: "Ticket Search",
 };
 
 type SearchType = { [key: string]: string | undefined };
-type ticketResultType = /*Pick<selectTicketType, "title" | "tech"> &*/ {
-  id: number,
-  title: string,
-  tech: string,
-  ticketDate: Date,
-  firstName: string | null,
-  lastName: string | null,
-  email: string | null,
-};
 
 export default async function Tickets({
   searchParams,
@@ -27,7 +18,7 @@ export default async function Tickets({
   searchParams: Promise<SearchType>;
 }) {
   const { searchText } = await searchParams;
-  let results: ticketResultType[] = [];
+  let results: TicketSearchType = [];
 
   if (!searchText) {
     results = await getOpenTickets();
