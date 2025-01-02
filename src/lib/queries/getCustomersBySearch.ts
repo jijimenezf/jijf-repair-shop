@@ -12,7 +12,7 @@ export async function getCustomersBySearch(searchText: string) {
         ilike(customers.city, wildcard),
         ilike(customers.zip, wildcard),
         sql`lower(concat(${customers.firstName}, ' ', ${customers.lastName})) LIKE ${`%${searchText.toLowerCase().replace(' ', '%')}%`}`,
-      ));
+      )).orderBy(customers.lastName);
 
     return results;
 }

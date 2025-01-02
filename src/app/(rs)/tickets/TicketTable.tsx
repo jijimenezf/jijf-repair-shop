@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   createColumnHelper,
   flexRender,
@@ -17,8 +17,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { CircleCheckIcon, CircleXIcon, ArrowUpDown, ArrowDown, ArrowUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CustomFilter from "@/components/CustomFilter";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { TicketSearchType } from "@/lib/queries/getTicketsBySearch";
+import { usePolling } from "@/hooks/usePolling";
 
 type TicketTableProps = {
     data: TicketSearchType,
@@ -27,12 +28,20 @@ type RowType = TicketSearchType[0];
 
 export default function TicketTable({ data }: TicketTableProps) {
     const router = useRouter();
+    const searchParams = useSearchParams();
 
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [sorting, setSorting] = useState<SortingState>([{
         id: "ticketDate",
         desc: false, // false for ascending, true for descending
     }]);
+
+    usePolling(searchParams.get("searchText"), 300000); // for loading new content in the page automatically
+
+    const pageIndex = useMemo(() => {
+      const page = searchParams.get("page");
+      return page ? parseInt(page) - 1 : 0;
+    }, [searchParams.get("page")]);
 
     const columnHeaders: Array<keyof RowType> = [
         "ticketDate",
@@ -43,6 +52,14 @@ export default function TicketTable({ data }: TicketTableProps) {
         "email",
         "completed",
     ];
+
+    const columnWidths = {
+      completed: 150,
+      ticketDate: 150,
+      title: 250,
+      tech: 225,
+      email: 225,
+  }
 
     const columnHelper = createColumnHelper<RowType>();
 
@@ -62,6 +79,7 @@ export default function TicketTable({ data }: TicketTableProps) {
             return value;
         }, {
             id: columnName,
+            size: columnWidths[columnName as keyof typeof columnWidths] ?? undefined,
             header: ({ column }) => {
                 return (
                     <Button
@@ -96,11 +114,10 @@ export default function TicketTable({ data }: TicketTableProps) {
         state: {
             sorting,
             columnFilters,
-        },
-        initialState: {
             pagination: {
-                pageSize: 10,
-            },
+              pageIndex,
+              pageSize: 10,
+            }
         },
         getCoreRowModel: getCoreRowModel(),
         onColumnFiltersChange: setColumnFilters,
@@ -111,6 +128,17 @@ export default function TicketTable({ data }: TicketTableProps) {
         getSortedRowModel: getSortedRowModel(),
     });
 
+    useEffect(() => {
+      const currentPageIndex = table.getState().pagination.pageIndex;
+      const pageCount = table.getPageCount();
+
+      if (pageCount <= currentPageIndex && currentPageIndex > 0) {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set("page", "1");
+        router.replace(`?${params.toString()}`, { scroll: false });
+      }
+    }, [table.getState().columnFilters]); // eslint-disable-line react-hooks/exhaustive-deps
+
     return (
       <div className="mt-6 flex flex-col gap-4">
         <div className="rounded-lg overflow-hidden border border-border">
@@ -119,7 +147,7 @@ export default function TicketTable({ data }: TicketTableProps) {
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id} className="bg-secondary">
+                    <TableHead key={header.id} className="bg-secondary p-1" style={{ width: header.getSize() }}>
                       <div>
                         {header.isPlaceholder
                           ? null
@@ -130,7 +158,10 @@ export default function TicketTable({ data }: TicketTableProps) {
                       </div>
                       {header.column.getCanFilter() ? (
                         <div className="grid place-content-center">
-                          <CustomFilter column={header.column} />
+                          <CustomFilter 
+                            column={header.column} 
+                            filteredRows={table.getFilteredRowModel().rows.map(row => row.getValue(header.column.id))}
+                          />
                         </div>
                       ) : null}
                     </TableHead>

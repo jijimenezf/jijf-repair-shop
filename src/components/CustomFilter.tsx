@@ -3,13 +3,13 @@ import { DebouncedInput } from "@/components/DebouncedInput";
 
 type Props<T> = {
   column: Column<T, unknown>;
+  filteredRows: string[],
 };
 
-export default function CustomFilter<T>({ column }: Props<T>) {
+export default function CustomFilter<T>({ column, filteredRows }: Props<T>) {
   const columnFilterValue = column.getFilterValue();
-  const sortedUniqueValues = Array.from(
-    column.getFacetedUniqueValues().keys()
-  ).sort();
+  const uniqueFilteredValues = new Set(filteredRows);
+  const sortedUniqueValues = Array.from(uniqueFilteredValues).sort();
 
   return (
     <>
@@ -22,7 +22,7 @@ export default function CustomFilter<T>({ column }: Props<T>) {
         type="text"
         value={(columnFilterValue ?? "") as string}
         onChange={(value) => column.setFilterValue(value)}
-        placeholder={`Search... (${[...column.getFacetedUniqueValues()].filter(arr => arr[0]).length})`}
+        placeholder={`Search... (${uniqueFilteredValues.size})`}
         className="w-full border shadow rounded bg-card"
         list={column.id + 'list'}
       />
