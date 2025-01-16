@@ -41,7 +41,7 @@ export default function TicketTable({ data }: TicketTableProps) {
     const pageIndex = useMemo(() => {
       const page = searchParams.get("page");
       return page ? parseInt(page) - 1 : 0;
-    }, [searchParams.get("page")]);
+    }, [searchParams.get("page")]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const columnHeaders: Array<keyof RowType> = [
         "ticketDate",

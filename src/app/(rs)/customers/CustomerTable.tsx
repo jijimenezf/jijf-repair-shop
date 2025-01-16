@@ -3,7 +3,6 @@
 import type { selectCustomerType } from "@/zod-schemas/customer";
 import { CellContext, createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ClipboardPen, TableOfContents } from 'lucide-react';
 import {
@@ -20,7 +19,6 @@ type CustomerTableProps = {
 }
 
 export default function CustomerTable({ data }: CustomerTableProps) {
-    const router = useRouter();
 
     const columnHeaders: Array<keyof selectCustomerType> = [
         "firstName",

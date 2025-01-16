@@ -6,7 +6,7 @@ import { redirect } from 'next/navigation';
 import { db } from '@/db';
 import { tickets } from '@/db/schema';
 import { actionClient } from '@/lib/safe-action';
-import { insertTicketSchema, type insertTicketType } from '@/zod-schemas/tickets';
+import { insertTicketSchema } from '@/zod-schemas/tickets';
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
 
 export const saveTicket = actionClient

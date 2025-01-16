@@ -67,7 +67,7 @@ export default function CustomerForm({ customer }: CustomerFormProps) {
         });
       }
     },
-    onError({ error }) {
+    onError() {
       toast({
         variant: 'destructive',
         title: 'Error 🚨',

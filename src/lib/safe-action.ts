@@ -8,6 +8,9 @@ export const actionClient = createSafeActionClient({
     },
     handleServerError(e, utils) {
         const { clientInput, metadata } = utils;
+        if (process.env.NODE_ENV === 'development') {
+            console.table({ clientInput, metadata, e });
+        }
         
         // It could be different for a non Neon DB instance
         if (e.constructor.name === 'NeonDbError') {

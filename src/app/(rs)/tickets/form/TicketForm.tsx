@@ -61,7 +61,7 @@ export default function TicketForm({ customer, ticket, techs = [], isEditable = 
         });
       }
     },
-    onError({ error }) {
+    onError() {
       toast({
         variant: 'destructive',
         title: 'Error 🚨',

@@ -5,26 +5,26 @@ import TicketForm from "@/app/(rs)/tickets/form/TicketForm";
 
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { Users, init as kindeInit } from "@kinde/management-api-js";
+import type { Metadata } from 'next'
+ 
+type Props = {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ [key: string]: string | undefined }>
+}
 
 // This is a new feature in NextJs 15
-type SearchType = { [key: string]: string | undefined };
+//type SearchType = { [key: string]: string | undefined };
 
-export async function generateMetada({
-  searchParams,
-}: {
-  searchParams: Promise<SearchType>;
-}) {
+export async function generateMetadata(
+  { searchParams }: Props
+): Promise<Metadata> {
   const { customerId, ticketId } = await searchParams;
   if (!customerId && !ticketId) return { title: "Missing TicketId or CustomerId" }
   if (customerId) return { title: `New Ticket for Customer #${customerId}` }
   return { title: `Edit Ticket #${ticketId}` }
 };
 
-export default async function TicketformPage({
-  searchParams,
-}: {
-  searchParams: Promise<SearchType>;
-}) {
+export default async function TicketformPage({ searchParams }: Props) {
   try {
     const { customerId, ticketId } = await searchParams;
 
